@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Dockerfile Basics</title>
+
+		<meta name="description" content="Introduction to Dockerfile">
+		<meta name="author" content="林革非 a.k.a. kfei">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/default.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+		<script>
+			if( window.location.search.match( /print-pdf/gi ) ) {
+				var link = document.createElement( 'link' );
+				link.rel = 'stylesheet';
+				link.type = 'text/css';
+				link.href = 'css/print/pdf.css';
+				document.getElementsByTagName( 'head' )[0].appendChild( link );
+			}
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h1>Dockerfile</h1>
+					<h3>Build Docker images automatically</h3>
+          <p>
+						<small>by <a href="http://github.com/kfei">林革非 (kfei)</a></small>
+					</p>
+				</section>
+
+				<section>
+					<h2>Topics</h2>
+          <ul>
+            <li>The instruction set</li>
+            <li>An Dockerfile example (for Python Flask)</li>
+            <li>More tweaks</li>
+            <li>Extends Dockerfile (docker-builder)</li>
+          </ul>
+				</section>
+
+        <section>
+          <h2>The format</h2>
+          <pre><code class="bash" data-trim>
+# Comment
+INSTRUCTION arguments
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>FROM</h2>
+          <p>The first instruction of a Dockerfile</p>
+          <pre><code class="bash" data-trim>
+# Base image with tag
+FROM &lt;image&gt;:&lt;tag&gt;
+          </code></pre>
+          <pre><code class="bash" data-trim>
+# Base image with default tag: latest
+FROM &lt;image&gt;
+          </code></pre>
+          <pre class="fragment"><code class="bash" data-trim>
+# Well, you probably saw this many times
+FROM ubuntu:latest
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>MAINTAINER</h2>
+          <p>Set the Author field of the generated images</p>
+          <pre><code class="bash" data-trim>
+MAINTAINER &lt;name&gt;
+          </code></pre>
+        </section>
+
+        <section>
+          <section>
+            <h2>RUN</h2>
+            <p>Execute any commands in a new layer on top of the current image and commit the results</p>
+            <pre><code class="bash" data-trim>
+# The shell form, equivalent to `/bin/sh -c &lt;command&gt;`
+RUN &lt;command&gt;
+
+# The exec form, the double-quotes matter
+RUN ["executable", "param1", "param2"]
+            </code></pre>
+          </section>
+
+          <section>
+            <h2>RUN</h2>
+            <p>What will this instruction do?</p>
+            <pre><code class="bash" data-trim>
+# Before install some package, I have to update the repository
+RUN apt-get update
+            </code></pre>
+            <p class="fragment"><i>It's the build cache...</i></p>
+          </section>
+
+          <section>
+            <h2>RUN</h2>
+            <p>Best practice for doing `apt-get`</p>
+            <pre><code data-trim class="bash">
+RUN apt-get update && apt-get install -y \
+  aufs-tools \
+  automake \
+  btrfs-tools \
+  build-essential \
+  curl \
+  dpkg-sig \
+  git \
+  iptables \
+  libapparmor-dev \
+  libcap-dev \
+  libsqlite3-dev \
+  lxc=1.0* \
+  mercurial \
+  parallel \
+  reprepro \
+  s3cmd=1.1.0*
+            </code></pre>
+            <small class="fragment">Hints: no need to do `rm /var/...` now</small>
+          </section>
+        </section>
+
+        <section>
+          <h2>CMD</h2>
+          <p>Provide defaults for an executing container</p>
+          <pre><code class="bash" data-trim>
+# The preferred exec form
+CMD ["executable","param1","param2"]
+
+# The shell form, equivalent to `/bin/sh -c "command param1 param2"`
+CMD command param1 param2
+
+# Just as default parameters to ENTRYPOINT (should rarely be used)
+CMD ["param1","param2"]
+          </code></pre>
+        </section>
+
+        <section>
+          <section>
+            <h2>ENTRYPOINT</h2>
+            <p>Configure a container that will run as an executable</p>
+            <pre><code class="bash" data-trim>
+# The preferred exec form
+ENTRYPOINT ["executable", "param1", "param2"]
+
+# Shell form is still possible, but when to use it?
+ENTRYPOINT command param1 param2
+            </code></pre>
+            <small class="fragment">Hints: the $PID issue</small>
+          </section>
+
+          <section>
+            <h2>ENTRYPOINT + CMD</h2>
+            <p>Should rarely be used unless you are quite familiar with how ENTRYPOINT works</p>
+            <pre><code class="bash" data-trim>
+FROM ubuntu
+ENTRYPOINT ["top", "-b"]
+CMD ["-c"]
+            </code></pre>
+          </section>
+        </section>
+
+        <section data-background="green">
+          <h3 style="color: white;">Don't confuse RUN with CMD.</h3>
+          <ul>
+            <li class="fragment" style="color: white;">RUN actually runs a command and commits the result</li>
+            <li class="fragment" style="color: white;">CMD does not execute anything at build time, but specifies the intended command for the image</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>EXPOSE</h2>
+          <p>Informs Docker that the container will listen on the specified network ports at runtime</p>
+          <pre><code class="bash" data-trim>
+# The executing container will listen on these ports
+EXPOSE 80 443
+          </code></pre>
+          <small class="fragment">Hint: the `-p` flag is still required to make ports accessible from the host at runtime</small>
+        </section>
+
+        <section>
+          <h2>ENV</h2>
+          <p>Sets the environment variables to all future `RUN` instructions and containers run from the resulting image</p>
+          <pre class="fragment"><code class="bash" data-trim>
+ENV PG_MAJOR 9.3
+ENV PG_VERSION 9.3.4
+RUN curl -SL http://example.com/postgres-$PG_VERSION.tar.xz | \
+    tar -xJC /usr/src/postgress && …
+ENV PATH /usr/local/postgres-$PG_MAJOR/bin:$PATH
+          </code></pre>
+          <small class="fragment">Hint: can be overridden by `-e` flag at runtime</small>
+        </section>
+
+        <section>
+          <h2>ADD</h2>
+          <p>Copies new files, directories or remote files by URLs to the filesystem of the container</p>
+          <pre class="fragment"><code class="bash" data-trim>
+# Add all your project files to containers run from the resulting image
+ADD my-awesome-proj /code/my-awesome-proj
+
+# Multiple files and wildcard matching are supported
+ADD *.md docs/*.md /code/docs
+
+# Best use case is local tar file auto-extraction,
+# e.g. to unpack the root file system
+ADD rootfs.tar.xz /
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>COPY</h2>
+          <p>Similar to `ADD`, but more preferred in general.</p>
+          <pre class="fragment"><code class="bash" data-trim>
+COPY requirements.txt /tmp/
+RUN pip install /tmp/requirements.txt
+COPY . /tmp/
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>VOLUME, USER, WORKDIR, ONBUILD, etc.</h2>
+          <a>http://docs.docker.com/reference/builder</a>
+        </section>
+
+				<section>
+					<h1>THANK YOU</h1>
+					<h3>@kfei</h3>
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: 'beige', // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Parallax scrolling
+				// parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+				// parallaxBackgroundSize: '2100px 900px',
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
