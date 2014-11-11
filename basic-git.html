@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+
+    <title>Basic Git</title>
+
+    <meta name="description" content="A HTML presentation for training basic Git.">
+    <meta name="author" content="kfei">
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="stylesheet" href="css/reveal.min.css">
+    <link rel="stylesheet" href="css/theme/default.css" id="theme">
+
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+    <script>
+      if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = 'css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+      }
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <section>
+            <h1>Git</h1>
+            <h3>Basic concepts and operations</h3>
+            <p>
+              <small><a href="http://gh.kfei.net">http://gh.kfei.net</a></small><br/>
+            </p>
+          </section>
+
+          <section>
+            <h2>Agenda</h2>
+            <ul>
+              <li><a href="#/1">Intro and prepare</a></li>
+              <li><a href="#/3">Working on local</a></li>
+              <li><a href="#/14">Co-work on remote</a></li>
+              <li><a href="#">Advanced topics</a></li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Books</h2>
+            <ul>
+              <li><a href="http://git-scm.com/book">Pro Git</a></li>
+              <li><a href="http://www-cs-students.stanford.edu/~blynn/gitmagic/">Git Magic</a></li>
+            </ul>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h2>Git is a...</h2>
+          </section>
+
+          <section>
+			<h3><strong style="font-size: 150%;">Distributed </strong>Version Control System</h3></strong></h3>
+            <p>
+              <li class="fragment">Simple</li>
+              <li class="fragment">Decentralized</li>
+              <li class="fragment">Fast and lightweight</li>
+              <li class="fragment">Strong support for non-linear development</li>
+              <li class="fragment">Able to handle huge projects like the Linux kernel efficiently</li>
+            </p>
+          </section>
+
+          <section>
+            <h2>Who is using Git?</h2>
+            <ul>
+              <li class="fragment">PHP / RoR / Django</li>
+              <li class="fragment">GNOME / KDE</li>
+              <li class="fragment">Linux kernel</li>
+              <li class="fragment">Google</li>
+              <li class="fragment">Amazon</li>
+              <li class="fragment" style="font-weight: bold; font-size: 125%;">PatentCloud!</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>About the linux kernel...</h2>
+            <blockquote cite="http://en.wikipedia.org/wiki/Linux_kernel">&ldquo;The kernel changes made in year 2007 have been submitted by no less than 1900 developers – but there may be a lot more because developers working in teams usually count as one. It is generally assumed that the community of Linux kernel developers is composed by 5000 or 6000 members. As of 2013, the 3.10 release of the Linux kernel had 15,803,499 lines of code; without a smart project management it would not be possible to keep such scale of development up and going.&rdquo;</blockquote>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h2>Before we get started...</h2>
+            <ul>
+              <li class="fragment">Set up your profile</li>
+              <li class="fragment">Alias some hot commands (optional)</li>
+              <li class="fragment">Generate your SSH key (optional)</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Set up your profile</h2>
+            <pre><code class="asciidoc" data-trim contenteditable style="font-size: 18px; margin-top: 20px;">$ git config --global user.name "John Doe"
+$ git config --global user.email johndoe@example.com
+$ git config --global core.editor vim</code></pre>
+          </section>
+
+          <section>
+            <h2>Alias some hot commands</h2>
+            <pre><code class="asciidoc" data-trim contenteditable style="font-size: 18px; margin-top: 20px;">[alias]
+    st = status
+    br = branch
+    ci = commit
+    cia = commit --amend
+    co = checkout
+    lg1 = log --graph --abbrev-commit --decorate --date=relative --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
+    lg2 = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+    lg = !"git lg1"</code></pre>
+          </section>
+
+          <section>
+            <h2>Generate your SSH key</h2>
+            <pre><code class="asciidoc">$ ssh-keygen -t rsa
+$ cat ~/.ssh/id_rsa.pub</code></pre>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h2>Working on local</h2>
+            <ul>
+              <li class="fragment">Create a new repository</li>
+              <li class="fragment">Clone from existing</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Create a Repository</h2>
+            <pre class="fragment"><code>$ git init &lt;project-name&gt;
+$ git add &lt;file1, file2, ...&gt;
+$ git commit -m "Initial commit"</code></pre>
+          </section>
+
+          <section data-background="red">
+            <h2 style="color: white;">Warning!</h2>
+            <p style="color: white;">Hey I've heard somebody say:&nbsp;&nbsp;
+            <code class="fragment" style="font-size: 125%; color: white; font-weight: bold;">git add .</code></p>
+            <p class="fragment" style="color: white;">Or:&nbsp;&nbsp;
+            <code class="fragment" style="font-size: 125%; color: white; font-weight: bold;">git commit -a</code></p>
+          </section>
+
+          <section data-background="red">
+            <p style="font-size: 150%; color: white;">Don't do that!</p>
+            <p class="fragment" style="font-size: 200%; color: white; font-weight: bold;">Just don't!</p>
+            <p class="fragment" style="font-size: 250%; color: white; font-weight: bold;">Please don't!</p>
+          </section>
+
+          <section data-background="green">
+            <p style="font-size: 150%; color: white;">Add the files you really want to stage!</p>
+            <pre class="fragment"><code>$ git add file1 file2 ... fileN</code></pre>
+          </section>
+
+          <section>
+            <h2>Clone from existing</h2>
+            <h4>3 types of protocol</h4>
+            <p class="fragment" style="font-size: 75%;"><code>$ git clone git@example.com/example.git</code></p>
+            <p class="fragment" style="font-size: 75%;"><code>$ git clone https://example.com/example.git</code></p>
+            <p class="fragment" style="font-size: 75%;"><code>$ git clone git://example.com/example.git</code></p>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h2>Basic Workflow</h2>
+            <ol>
+              <li class="fragment" style="font-size: 75%;">You modify files in your working directory.</li>
+              <li class="fragment" style="font-size: 75%;">You stage the files, adding snapshots of them to your staging area.</li>
+              <li class="fragment" style="font-size: 75%;">You do a commit, which takes the files as they are in the staging area and stores that snapshot permanently to your Git directory.</li>
+              <li class="fragment" style="font-size: 75%;">(Optional) You <span style="font-style: italic; font-weight: bold;">amend</span> the commit.</li>
+            </ol>
+            <p></p>
+            <p class="fragment" style="font-size: 125%;">coding &#8658; add to stage &#8658; commit it &#8658; amend</p>
+          </section>
+
+          <section>
+            <img src="images/file-status-flow.png" style="border: none;" />
+          </section>
+
+          <section>
+            <img src="images/file-status.jpg" style="border: none;" />
+          </section>
+
+          <section>
+            <img src="images/git-file-status.png" style="border: none;" />
+          </section>
+
+          <section>
+            <p><code style="font-weight: bold; font-size: 150%;">git add &lt;file&gt;</code></p>
+            <p class="fragment">...is a multipurpose command</p>
+            <ul>
+              <li class="fragment">to begin tracking new files</li>
+              <li class="fragment">to stage files</li>
+              <li class="fragment">to marking merge-conflicted files as resolved</li>
+            </ul>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h2>About the commit messages...</h2>
+          </section>
+
+          <section>
+            <h2>True Story</h2>
+            <img src="images/bad-msg.png" style="border: none;" />
+          </section>
+
+          <section>
+            <h2>Here is a model Git commit message</h2>
+            <pre><code>Capitalized, short (50 chars or less) summary
+
+More detailed explanatory text, if necessary.  Wrap it to about 72
+characters or so.  In some contexts, the first line is treated as the
+subject of an email and the rest of the text as the body.  The blank
+line separating the summary from the body is critical (unless you omit
+the body entirely); tools like rebase can get confused if you run the
+two together.
+
+Write your commit message in the imperative: "Fix bug" and not "Fixed bug"
+or "Fixes bug."  This convention matches up with commit messages generated
+by commands like git merge and git revert.
+
+Further paragraphs come after blank lines.
+
+- Bullet points are okay, too
+
+- Typically a hyphen or asterisk is used for the bullet, preceded by a
+  single space, with blank lines in between, but conventions vary here
+
+- Use a hanging indent
+            </code></pre>
+          </section>
+
+          <section>
+            <h2>Good Practices: The 50/72 rule</h2>
+            <ul>
+              <li class="fragment">The first line should always be <a style="font-size: 125%;" href="http://stopwritingramblingcommitmessages.com/">50 characters or less</a> and that it should be followed by a <strong style="font-size: 125%;">blank line</strong>.</li>
+              <li class="fragment">72 charactors width for the detail message body</li>
+              <li class="fragment">Don't use: &nbsp;&nbsp;<code>git commit -m "one line msg"</code></li>
+              <li class="fragment">"Fix bug" and not "Fixed bug" or "Fixes bug"</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Linux Kernel</h2>
+            <h3>From the 500K+ commits</h3>
+            <img src="images/kernel-commit-histo.png" style="border: none;" />
+          </section>
+
+          <section>
+            <h3>For Vim users</h3>
+            <pre><code># ~/.vimrc
+autocmd Filetype gitcommit setlocal spell textwidth=72</code></pre>
+          </section>
+        </section>
+
+        <section>
+          <h3>The Demo Project: Fake Website</h3>
+          <!-- 00 - Introducing the fake website project -->
+          <script type="text/javascript" src="https://asciinema.org/a/9700.js" id="asciicast-9700" data-size="medium" async></script>
+        </section>
+
+        <section>
+            <section>
+              <h2>The Git Time Machine</h2>
+              <p>Start time traveling with the <span style="color: red; font-weight: bold;">HEAD</span> pointer!</p>
+            </section>
+            <section>
+              <p><span style="font-size: 200%; font-weight: bold;">HEAD </span>can point to...
+              </p>
+              <ul>
+                  <li class="fragment">the last commit in current branch<pre style="max-width: 75%;"><code>$ git checkout &lt;branch-name&gt;</code></pre></li>
+                  <li class="fragment">any commit in Git history (<span style="font-style: italic;">detached HEAD</span>)<pre style="max-width: 75%;"><code>$ git checkout &lt;commit-hash&gt;</code></pre></li>
+              </ul>
+            </section>
+            <section>
+              <!-- 09 - Git Time Machine -->
+              <script type="text/javascript" src="https://asciinema.org/a/9715.js" id="asciicast-9715" data-size="medium" async></script>
+            </section>
+            <section>
+              <h3>Checkout vs. Reset</h3>
+              <ul>
+                  <li class="fragment"><span style="font-style: italic;">Checkout</span> is about updating the working directory.</li>
+                  <li class="fragment"><span style="font-style: italic;">Reset</span> is about updating the index (Git history).</li>
+              </ul>
+              <p></p>
+              <p class="fragment">
+                <small>See Also: <a href="http://stackoverflow.com/questions/3639342/whats-the-difference-between-git-reset-and-git-checkout">What's the difference between 'git reset' and 'git checkout'?</a></small>
+              </p>
+            </section>
+        </section>
+
+        <section>
+          <section>
+            <h1>Branch</h1>
+            <h4>Work on an Non-linear Workflow</h4>
+          </section>
+
+          <section>
+            <img src="images/gitflow-orig-diagram.png" style="border: none; max-height: 75%;" />
+            <p style="font-size: 50%">See Also: <a href="http://nvie.com/posts/a-successful-git-branching-model/">A Successful Git Branching Model</a></p>
+          </section>
+
+          <section>
+            <h2>Goal</h2>
+            <ul>
+              <li>to achieve code (development effort) isolation</li>
+              <li>task independent makes parallel development possible</li>
+            </ul>
+          </section>
+        </section>
+
+
+        <section>
+          <section data-transition="none">
+            <h5>A simple branch & merge example</h5>
+            <img src="images/basic-merge-01.png" style="border: none; max-height: 75%;" />
+          </section>
+
+          <section data-transition="none">
+            <h5>Git's default way: fast-forward merge</h5>
+            <img src="images/basic-merge-02.png" style="border: none; max-height: 75%;" />
+          </section>
+
+          <section data-transition="none">
+            <h5>After deleting the topic branch</h5>
+            <img src="images/basic-merge-03.png" style="border: none; max-height: 75%;" />
+          </section>
+
+          <section data-transition="none">
+            <h5>A simple branch & merge example</h5>
+            <img src="images/basic-merge-01.png" style="border: none; max-height: 75%;" />
+          </section>
+
+          <section data-transition="none">
+            <h5>Non-fast-forward merge</h5>
+            <img src="images/basic-merge-04.png" style="border: none; max-height: 75%;" />
+          </section>
+
+          <section data-transition="none">
+            <h5>After deleting the topic branch</h5>
+            <img src="images/basic-merge-05.png" style="border: none; max-height: 75%;" />
+          </section>
+
+          <section>
+            <!-- 01 - Simple branch and merge -->
+            <script type="text/javascript" src="https://asciinema.org/a/9691.js" id="asciicast-9691" data-size="medium" data-speed="1.5" async></script>
+          </section>
+
+          <section>
+            <h3>ff vs. no-ff</h3>
+            <p><blackquote cite="">Fast-forward merging makes sense for short-lived branches, but in a more complex history, non-fast-forward merging may make the history easier to understand, and make it easier to revert a group of commits.</blackqoute></p>
+            <img src="images/basic-merge-06.png" style="border: none; max-height: 50%;" />
+          </section>
+
+        </section>
+
+        <section>
+          <section>
+            <h2>Merge with Conflicts</h2>
+            <h5>3-way merge</h5>
+          </section>
+
+          <section data-transition="none">
+            <pre style="max-width: 75%;"><code># On branch 'master'
+$ git merge topic</code></pre>
+            <img src="images/merge-with-conflicts-01.png" style="border: none; max-height: 75%;" />
+          </section>
+          <section data-transition="none">
+            <pre style="max-width: 75%;"><code># On branch 'master'
+$ git merge topic</code></pre>
+            <img src="images/merge-with-conflicts-02.png" style="border: none; max-height: 75%;" />
+          </section>
+          <section data-transition="none">
+            <pre style="max-width: 75%;"><code># On branch 'master'
+$ git merge topic</code></pre>
+            <img src="images/merge-with-conflicts-03.png" style="border: none; max-height: 75%;" />
+          </section>
+          <section data-transition="none">
+            <pre style="max-width: 75%;"><code># On branch 'master'
+$ git merge topic</code></pre>
+            <img src="images/merge-with-conflicts-03-1.png" style="border: none; max-height: 75%;" />
+          </section>
+          <section>
+            <!-- 02 - Merge with conflicts (3-way merge) -->
+            <script type="text/javascript" src="https://asciinema.org/a/9695.js" id="asciicast-9695" data-size="medium" async></script>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h2>Merge with Conflicts</h2>
+            <h5>rebase + ff-merge</h5>
+          </section>
+          <section data-transition="none">
+            <pre style="max-width: 75%;"><code># On branch 'topic'
+$ git rebase master
+# Checkout to branch 'master'
+$ git merge topic</code></pre>
+            <img src="images/merge-with-conflicts-01.png" style="border: none; max-height: 75%;" />
+          </section>
+          <section data-transition="none">
+            <pre style="max-width: 75%;"><code># On branch 'topic'
+$ git rebase master
+# Checkout to branch 'master'
+$ git merge topic</code></pre>
+            <img src="images/merge-with-conflicts-04.png" style="border: none; max-height: 75%;" />
+          </section>
+          <section data-transition="none">
+            <pre style="max-width: 75%;"><code># On branch 'topic'
+$ git rebase master
+# Checkout to branch 'master'
+$ git merge topic</code></pre>
+            <img src="images/merge-with-conflicts-05.png" style="border: none; max-height: 75%;" />
+          </section>
+          <section data-transition="none">
+            <pre style="max-width: 75%;"><code># On branch 'topic'
+$ git rebase master
+# Checkout to branch 'master'
+$ git merge topic</code></pre>
+            <img src="images/merge-with-conflicts-06.png" style="border: none; max-height: 75%;" />
+          </section>
+          <section data-transition="none">
+            <pre style="max-width: 75%;"><code># On branch 'topic'
+$ git rebase master
+# Checkout to branch 'master'
+$ git merge topic</code></pre>
+            <img src="images/merge-with-conflicts-07.png" style="border: none; max-height: 75%;" />
+          </section>
+          <section>
+            <!-- 03 - Merge with conflicts (rebase + ff-merge) -->
+            <script type="text/javascript" src="https://asciinema.org/a/9697.js" id="asciicast-9697" data-size="medium" async></script>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h2>Rebase</h2>
+            <p class="fragment"><span style="color: red; font-weight: bold; font-style: italic;">Replay</span> commits on a new base.</p>
+            <pre style="max-width: 75%;" class="fragment"><code># Learning rebase in interactive mode
+git rebase -i &lt;some-where&gt;</code></pre>
+          </section>
+          <section>
+            <!-- 04 - The 'rebase -i' command -->
+            <script type="text/javascript" src="https://asciinema.org/a/9698.js" id="asciicast-9698" data-size="medium" async></script>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h2>Conflicts</h2>
+            <ul>
+              <li class="fragment">Git use its default <span style="font-weight: bold; font-style: italic;"><a href="http://codicesoftware.blogspot.com/2011/09/merge-recursive-strategy.html">recursive</a></span> merge strategy automatically resolves conflicts in most cases.</li>
+              <li class="fragment">Resolve conflicts manually by:<pre><code>$ git add &lt;file1, file2, ...&gt; # mark the files as resolved
+$ git commit # generate a merge commit</code></pre></li>
+            </ul>
+          </section>
+          <section>
+            <h2>mergetool</h2>
+            <p>Set <span style="font-style: italic;">Meld</span> as Git mergetool</p>
+            <pre><code>$ git config --global merge.tool meld</code></pre>
+            <small>See Also: <a href="http://stackoverflow.com/questions/161813/how-do-i-fix-merge-conflicts-in-git">http://stackoverflow.com/questions/161813/how-do-i-fix-merge-conflicts-in-git</a></small>
+          </section>
+          <section>
+            <!-- 05 - Using mergetool -->
+            <script type="text/javascript" src="https://asciinema.org/a/9699.js" id="asciicast-9699" data-size="medium" async></script>
+          </section>
+          <section>
+            <h3>meld</h3>
+            <img src="images/meld.png" style="border: none; max-height: 75%;" />
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h2>Remote</h2>
+            <ul>
+              <li>Repositories of your project that are hosted on the Internet or network somewhere.</li>
+              <li><span style="color: red; font-weight: bold; font-style: italic;">origin</span> is the default name Git gives to the server you cloned from.</li>
+            </ul>
+          </section>
+          <section>
+            <h3>Adding a remote</h3>
+            <!-- 06 - Adding a remote -->
+            <script type="text/javascript" src="https://asciinema.org/a/9709.js" id="asciicast-9709" data-size="medium" async></script>
+          </section>
+          <section>
+            <h3>Fetch and Merge</h3>
+            <!-- 07 - fetch and merge -->
+            <script type="text/javascript" src="https://asciinema.org/a/9712.js" id="asciicast-9712" data-size="medium" async></script>
+          </section>
+          <section>
+            <p><code>git fetch && git merge</code></p>
+            <p class="fragment" style="font-size: 200%;">&#8659;<br/>
+            <code>git pull</code></p>
+          </section>
+          <section>
+            <h3>pull with rebase</h3>
+            <!-- 08 - Pull with rebase -->
+            <script type="text/javascript" src="https://asciinema.org/a/9714.js" id="asciicast-9714" data-size="medium" async></script></script>
+          </section>
+          <section>
+           <p>Then...<span class="fragment" style="font-size: 200%; font-weight: bold; color: red;">   git push</span></p>
+          </section>
+          <section data-background="green">
+            <h4 style="color: #F3F3F3;">Best Pratices</h4>
+            <p style="color: white; font-size: 125%; font-weight: bold;">Commit Often, Perfect Later, Publish Once!</p>
+            <p><br/></p>
+            <small style="color: #F3F3F3;">See Also: <a href="http://sethrobertson.github.io/GitBestPractices/">http://sethrobertson.github.io/GitBestPractices</a></small>
+          </section>
+          <section>
+            <h3>Before Push</h3>
+            <img src="images/serious.png" style="border: none; height: 75%" />
+          </section>
+          <section>
+            <h3>After Push</h3>
+            <img src="images/happy.png" style="border: none; height: 75%" />
+          </section>
+          <section>
+            <h3>After Production</h3>
+            <img src="images/ohshit.png" style="border: none; height: 75%" />
+          </section>
+        </section>
+
+        <section>
+          <h1>To Be Continued...</h1>
+        </section>
+      </div>
+
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.min.js"></script>
+
+    <script>
+
+      Reveal.initialize({
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+
+        theme: 'solarized',
+        transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Parallax scrolling
+        // parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+        // parallaxBackgroundSize: '2100px 900px',
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+          { src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+          { src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+        ]
+      });
+
+    </script>
+
+  </body>
+</html>
